@@ -1,7 +1,8 @@
 const express = require('express')
 const app = express()
 const weather=require('./data/weather.json')
-var cors = require('cors')
+const PORT=process.env.PORT||3030
+const cors = require('cors')
 require('dotenv').config()
 app.use(cors())
 app.get('/weather', function (req, res) {
@@ -21,4 +22,6 @@ class Forcast{
 }
 
  console.log('hhh back end')
-app.listen(3005)
+app.listen(PORT,()=>{
+  console.log(`server started at ${PORT}`);
+})
