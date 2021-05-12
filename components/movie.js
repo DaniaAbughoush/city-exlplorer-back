@@ -1,14 +1,26 @@
 require('dotenv').config()
 const superagent = require('superagent');
 const MOVIE_API_KEY=process.env.MOVIE_API_KEY;
-
+const inMemory={};
 const handlerMovie=(req,res)=>{
+  const query=req.query.query
+  const queryParms={
+    api_key:MOVIE_API_KEY,
+    query:query
+  }
     
-    const movieBitUrl = `https://api.themoviedb.org/3/search/movie?api_key=${MOVIE_API_KEY}&query=${req.query.query}&limit=8`;
+    const movieBitUrl = `https://api.themoviedb.org/3/search/movie?limit=8`;
 
-    superagent.get(movieBitUrl).then(movieBitData => {
-      const movieArray = movieBitData.body.results.map(mov => new Movie(mov));
-      res.send(movieArray);
+    superagent.get(movieBitUrl).query(queryParms).then(movieBitData => {
+      if (inMemory[query]!==undefined) {
+        console.log('cache hit movie') 
+        res.send(inMemory[query])      
+      } else {
+        const movieArray = movieBitData.body.results.map(mov => new Movie(mov));
+        console.log(`cache miss mmovie`);
+        inMemory[query]=movieArray
+        res.send(movieArray);
+      }
     }).catch(console.error);
 }
 class Movie {
