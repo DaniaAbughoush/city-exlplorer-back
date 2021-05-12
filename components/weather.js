@@ -3,14 +3,33 @@ require('dotenv').config()
 const WEATHER_API_KEY=process.env.WEATHER_API_KEY;
 const superagent = require('superagent');
 
+const inMemory={};
 const handleWeather=(req,res)=>{
-try {
+    const lon=req.query.lon;
+    const lat=req.query.lat;
+    const querParms={
+        key:WEATHER_API_KEY,
+        lat:lat,
+        lon:lon
+    }
+    try {
+        
+        
     console.log(req.query);
-    const weatherBitUrl = `https://api.weatherbit.io/v2.0/forecast/daily?key=${WEATHER_API_KEY}&lat=${req.query.lat}&lon=${req.query.lon}`;
+    const weatherBitUrl = `https://api.weatherbit.io/v2.0/forecast/daily`;
     console.log(weatherBitUrl);
-    superagent.get(weatherBitUrl).then(weatherBitData => {
-        const arrOfData = weatherBitData.body.data.map(data => new Weather(data));
-        res.send(arrOfData);
+    superagent.get(weatherBitUrl).query(querParms).then(weatherBitData => {
+        if (inMemory[lat,lon]!==undefined) {
+          console.log('cache hit weather')
+          res.send(inMemory[lat,lon])  
+        } else {
+            const arrOfData = weatherBitData.body.data.map(data => new Weather(data));
+            inMemory[lat,lon]=arrOfData;
+            console.log('cache miss weather')
+            res.send(arrOfData);
+
+            
+        }
 
     });
 } catch (error) {
